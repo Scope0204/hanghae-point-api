@@ -29,6 +29,17 @@ class PointServiceTest {
     }
 
     @Test
+    @DisplayName("ID 포인트 조회 성공")
+    void findPointByIdSuccess(){
+        Long id = 1L;
+        Long amount = 100L;
+        when(userPointTable.selectById(id)).thenReturn(new UserPoint(id, amount, System.currentTimeMillis()));
+
+        UserPoint userPoint = pointService.select(id);
+        assertThat(userPoint.point()).isEqualTo(amount);
+    }
+
+    @Test
     @DisplayName("ID 없는 경우 예외 반환")
     void isEmptyIdTest() {
         when(userPointTable.selectById(anyLong())).thenReturn(null);
