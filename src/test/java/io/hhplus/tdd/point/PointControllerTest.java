@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -26,6 +27,20 @@ class PointControllerTest {
 
     @MockBean
     private PointService pointService;
+
+    @Test
+    @DisplayName("GET 포인트 조회 요청 성공")
+    void selectPointSuccessTest() throws Exception{
+        // Given
+        long id = 1L;
+        long amount = 50L;
+        UserPoint userPoint = new UserPoint(id, amount, System.currentTimeMillis());
+        when(pointService.select(id)).thenReturn(userPoint);
+
+        // When & Then : get 요청 수행 후 응답 상태 확인
+        mockMvc.perform(get("/point/{id}", id))
+                .andExpect(status().isOk());
+    }
 
     @Test
     @DisplayName("PATCH 포인트 충전 요청 요청 성공")
