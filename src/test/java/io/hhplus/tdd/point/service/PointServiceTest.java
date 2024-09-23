@@ -10,7 +10,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
@@ -29,39 +28,26 @@ class PointServiceTest {
     }
 
     @Test
-    @DisplayName("ID 포인트 조회 성공")
-    void findPointByIdSuccess(){
+    @DisplayName("포인트를 조회하는 경우")
+    void selectPointTest(){
         Long id = 1L;
         Long amount = 100L;
+        // 해당 id에 기본값 포인트 설정
         when(userPointTable.selectById(id)).thenReturn(new UserPoint(id, amount, System.currentTimeMillis()));
 
+        // 유저 포인트 정보에 담긴 포인트 양 검증
         UserPoint userPoint = pointService.select(id);
         assertThat(userPoint.point()).isEqualTo(amount);
     }
 
     @Test
-    @DisplayName("ID 없는 경우 예외 반환")
-    void isEmptyIdTest() {
-        when(userPointTable.selectById(anyLong())).thenReturn(null);
-        assertThrows(IllegalArgumentException.class,
-                () -> pointService.charge(1L, 100L), "아이디가 존재하지 않습니다.");
-    }
-
-    @Test
-    @DisplayName("해당 유저 ID가 유효하지 않는 경우 예외 반환")
-    void isInValidIdTest() {
-        Long id = 123L;
-        when(userPointTable.selectById(id)).thenReturn(UserPoint.empty(id));
-        assertThrows(IllegalArgumentException.class,
-                () -> pointService.charge(id, anyLong()), "아이디가 존재하지 않습니다.");
-    }
-
-    @Test
-    @DisplayName("유저 ID는 유효하지만, 0원 이하의 금액을 충전하는 경우 예외 반환")
+    @DisplayName("0원 이하의 금액을 충전하는 경우")
     void chargeInValidAmountTest() {
         Long id = 1L;
-        // 해당 id의 임의의 포인트를 가진 결과 생성
+        // 해당 id의 임의의 포인트 설정
         when(userPointTable.selectById(id)).thenReturn(new UserPoint(id, anyLong(), System.currentTimeMillis()));
+
+        //0원 이하를 충전하는 경우 예외 발생
         assertThatThrownBy(() -> pointService.charge(id, 0L))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("충전 금액은 0보다 커야 합니다.");
@@ -75,12 +61,11 @@ class PointServiceTest {
         // 해당 id에 기본값 포인트 설정
         when(userPointTable.selectById(id)).thenReturn(new UserPoint(id, baseAmount, System.currentTimeMillis()));
 
-        // 기존 사용자 포인트 + 포인트 충전
+        // 해당 id에 amount 만큼 Point 업데이트
         when(userPointTable.insertOrUpdate(anyLong(), anyLong())).thenAnswer(invocationOnMock -> {
             long invocationID = invocationOnMock.getArgument(0);
             long invocationAmount = invocationOnMock.getArgument(1);
-            long updatedAmount = userPointTable.selectById(invocationID).point() + invocationAmount;
-            return new UserPoint(invocationID, updatedAmount, System.currentTimeMillis());
+            return new UserPoint(invocationID, invocationAmount, System.currentTimeMillis());
         });
 
         long chargeAmount = 100L;

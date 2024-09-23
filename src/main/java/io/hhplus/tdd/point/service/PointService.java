@@ -16,24 +16,16 @@ public class PointService {
     }
 
     public UserPoint charge(long id, long amount) {
-        // 유저 포인트 조회
-        UserPoint userPoint = userPointTable.selectById(id);
-        if (userPoint == null || userPoint.id() == 0) {
-            throw new IllegalArgumentException("아이디가 존재하지 않습니다.");
-        }
         if (amount <= 0) {
             throw new IllegalArgumentException("충전 금액은 0보다 커야 합니다.");
         }
-        return userPointTable.insertOrUpdate(id, amount);
+        // 기존 포인트 양 조회
+        Long baseAmount = userPointTable.selectById(id).point();
+        return userPointTable.insertOrUpdate(id, baseAmount+amount);
     }
 
     public UserPoint select(long id) {
-        // 유저 포인트 조회
-        UserPoint userPoint = userPointTable.selectById(id);
-        if (userPoint == null || userPoint.id() == 0) {
-            throw new IllegalArgumentException("아이디가 존재하지 않습니다.");
-        }
-        return userPoint;
+        return userPointTable.selectById(id);
     }
 }
 
