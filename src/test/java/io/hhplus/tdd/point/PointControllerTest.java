@@ -1,6 +1,7 @@
 package io.hhplus.tdd.point;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.hhplus.tdd.database.PointHistoryTable;
 import io.hhplus.tdd.point.service.PointService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,7 +11,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
+import static io.hhplus.tdd.point.TransactionType.USE;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -27,6 +32,29 @@ class PointControllerTest {
 
     @MockBean
     private PointService pointService;
+
+    @MockBean
+    private PointHistoryTable pointHistoryTable;
+
+    @Test
+    @DisplayName("GET 포인트 충전/이용 내역을 조회 요청 성공")
+    void selectPointHistorySuccessTest() throws Exception{
+        // Given
+        long id = 1L;
+        long amount = 100L;
+
+        // 포인트 충전/이용 내역 조회 메서드 설정
+        when(pointHistoryTable.selectAllByUserId(eq(id)))
+                .thenReturn(List.of(
+                        new PointHistory(1L, id, amount, USE, System.currentTimeMillis())
+                ));
+
+        // When & Then : get 요청 수행 후 응답 상태 확인
+        mockMvc.perform(get("/point/{id}/histories", id))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$").isArray());
+    }
 
     @Test
     @DisplayName("PATCH 포인트 사용 요청 성공")
