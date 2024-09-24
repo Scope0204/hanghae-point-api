@@ -29,6 +29,27 @@ class PointControllerTest {
     private PointService pointService;
 
     @Test
+    @DisplayName("PATCH 포인트 조회 요청 성공")
+    void usePointSuccessTest() throws Exception{
+        // Given
+        long id = 1L;
+        long amount = 50L;
+        UserPoint mockUserPoint = new UserPoint(id, amount, System.currentTimeMillis());
+        when(pointService.use(anyLong(), anyLong())).thenReturn(mockUserPoint);
+        // 사용 포인트를 json 으로 변환
+        String jsonContent = objectMapper.writeValueAsString(amount);
+
+        // When & Then : patch 요청 수행 후 응답 상태와 반환되는 값 검증
+        mockMvc.perform(patch("/point/{id}/use", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent))
+                .andExpect(status().isOk()) // response 200
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.point").value(amount));
+    }
+
+    @Test
     @DisplayName("GET 포인트 조회 요청 성공")
     void selectPointSuccessTest() throws Exception{
         // Given

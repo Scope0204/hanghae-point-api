@@ -27,5 +27,9 @@ public class PointService {
     public UserPoint select(long id) {
         return userPointTable.selectById(id);
     }
+
+    public UserPoint use(long id, long amount) {
+        return null;
+    }
 }
 
