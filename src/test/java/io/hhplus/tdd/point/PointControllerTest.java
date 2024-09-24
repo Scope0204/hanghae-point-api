@@ -29,7 +29,7 @@ class PointControllerTest {
     private PointService pointService;
 
     @Test
-    @DisplayName("PATCH 포인트 조회 요청 성공")
+    @DisplayName("PATCH 포인트 사용 요청 성공")
     void usePointSuccessTest() throws Exception{
         // Given
         long id = 1L;

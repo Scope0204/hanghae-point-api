@@ -28,6 +28,55 @@ class PointServiceTest {
     }
 
     @Test
+    @DisplayName("포인트 사용 금액이 0원보다 작은 경우")
+    void usePointNegativeAmount(){
+        Long id = 1L;
+        Long amount = 0L;
+
+        //0원 이하를 사용하는 경우 예외 발생
+        assertThatThrownBy(() -> pointService.use(id, amount))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("사용 금액은 0보다 커야 합니다.");
+    }
+
+    @Test
+    @DisplayName("포인트 사용 금액이 현재 보유한 포인트 보다 작은 경우")
+    void usePointExceedsBalance(){
+        Long id = 1L;
+        Long baseAmount = 50L;
+        // 해당 id에 기본값 포인트 설정
+        when(userPointTable.selectById(id)).thenReturn(new UserPoint(id, baseAmount, System.currentTimeMillis()));
+
+        Long useAmount = 100L;
+        // 현재 보유한 포인트 양보다 많은 포인트를 사용하는 경우 예외발생
+        assertThatThrownBy(() -> pointService.use(id, useAmount))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("사용하고자하는 포인트가 보유한 포인트보다 많습니다.");
+    }
+
+    @Test
+    @DisplayName("포인트 사용 성공")
+    void usePoint(){
+        Long id = 1L;
+        Long baseAmount = 50L;
+        // 해당 id에 기본값 포인트 설정
+        when(userPointTable.selectById(id)).thenReturn(new UserPoint(id, baseAmount, System.currentTimeMillis()));
+
+        // 해당 id에 amount 만큼 Point 업데이트
+        when(userPointTable.insertOrUpdate(anyLong(), anyLong())).thenAnswer(invocationOnMock -> {
+            long invocationID = invocationOnMock.getArgument(0);
+            long invocationAmount = invocationOnMock.getArgument(1);
+            return new UserPoint(invocationID, invocationAmount, System.currentTimeMillis());
+        });
+
+        Long useAmount = 20L;
+        UserPoint userPoint = pointService.use(id, useAmount);
+
+        // 현재 보유한 포인트가 기존 포인트에서 사용한 포인트 양을 차감한 수치인지 검증
+        assertThat(userPoint.point()).isEqualTo(baseAmount - useAmount);
+    }
+
+    @Test
     @DisplayName("포인트를 조회하는 경우")
     void selectPointTest(){
         Long id = 1L;

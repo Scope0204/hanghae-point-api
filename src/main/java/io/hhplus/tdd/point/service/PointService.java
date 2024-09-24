@@ -29,7 +29,15 @@ public class PointService {
     }
 
     public UserPoint use(long id, long amount) {
-        return null;
+        if (amount <= 0) {
+            throw new IllegalArgumentException("사용 금액은 0보다 커야 합니다.");
+        }
+        // 기존 포인트 양 조회
+        Long baseAmount = userPointTable.selectById(id).point();
+        if(baseAmount < amount) {
+            throw new IllegalArgumentException("사용하고자하는 포인트가 보유한 포인트보다 많습니다.");
+        }
+        return userPointTable.insertOrUpdate(id, baseAmount-amount);
     }
 }
 
