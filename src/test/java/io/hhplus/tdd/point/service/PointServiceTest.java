@@ -38,6 +38,7 @@ class PointServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
+    // ============================ 포인트 충전/사용 내역 조회 테스트 ============================
     @Test
     @DisplayName("포인트 충전/사용 내역 조회")
     void selectPointHistory(){
@@ -88,6 +89,7 @@ class PointServiceTest {
         verify(pointHistoryTable, times(4)).insert(eq(userId), anyLong(), eq(TransactionType.CHARGE), anyLong());
     }
 
+    // ============================ 포인트 사용 테스트 ============================
     @Test
     @DisplayName("포인트 사용 금액이 0원보다 작은 경우")
     void usePointNegativeAmount(){
@@ -101,7 +103,7 @@ class PointServiceTest {
     }
 
     @Test
-    @DisplayName("포인트 사용 금액이 현재 보유한 포인트 보다 작은 경우")
+    @DisplayName("포인트 사용 금액이 현재 보유한 포인트 보다 많은 경우")
     void usePointExceedsBalance(){
         Long id = 1L;
         Long baseAmount = 50L;
@@ -137,6 +139,7 @@ class PointServiceTest {
         assertThat(userPoint.point()).isEqualTo(baseAmount - useAmount);
     }
 
+    // ============================ 포인트 조회 테스트 ============================
     @Test
     @DisplayName("포인트를 조회하는 경우")
     void selectPointTest(){
@@ -150,6 +153,7 @@ class PointServiceTest {
         assertThat(userPoint.point()).isEqualTo(amount);
     }
 
+    // ============================ 포인트 충전 테스트 ============================
     @Test
     @DisplayName("0원 이하의 금액을 충전하는 경우")
     void chargeInValidAmountTest() {
