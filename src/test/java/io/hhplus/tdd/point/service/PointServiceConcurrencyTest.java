@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -14,6 +15,7 @@ import java.util.concurrent.Executors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class PointServiceConcurrencyTest {
 
     private final PointService pointService;
@@ -35,7 +37,7 @@ public class PointServiceConcurrencyTest {
         ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
         CountDownLatch latch = new CountDownLatch(numberOfThreads);
 
-        // When 
+        // When
         for (int i = 0; i < numberOfThreads; i++) {
             executor.submit(() -> {
                 try {
@@ -83,5 +85,34 @@ public class PointServiceConcurrencyTest {
         // Then: 최종 포인트 검증
         UserPoint finalPoints = pointService.select(userId);
         assertThat(basePoint-(amount * numberOfThreads)).isEqualTo(finalPoints.point());
+    }
+
+    @Test
+    @DisplayName("포인트를 동시에 충전/사용을 같은 횟수로 사용 하여도 순차적으로 충전/사용이된다.")
+    void testSequentialPointUsageAndCharging() throws InterruptedException {
+        // Given
+        Long userId = 1L;
+        Long amount = 10L;
+        int numberOfThreads = 10; // 동시에 실행할 스레드 수
+        ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
+        CountDownLatch latch = new CountDownLatch(numberOfThreads);
+
+        // When
+        for (int i = 0; i < numberOfThreads; i++) {
+            executor.submit(() -> {
+                try {
+                    pointService.charge(userId, amount); // 포인트 충전
+                    pointService.use(userId, amount); // 포인트 사용
+                } finally {
+                    latch.countDown(); // 스레드가 완료될 때마다 카운트 다운
+                }
+            });
+        }
+        latch.await();  // 모든 스레드가 완료될 때까지 충분히 대기
+        executor.shutdown(); // 더 이상 작업을 추가할 수 없으며, 모든 작업이 완료되면 ExecutorService를 종료
+
+        // Then: 최종 포인트 검증
+        UserPoint finalPoints = pointService.select(userId);
+        assertThat(0L).isEqualTo(finalPoints.point());
     }
 }
