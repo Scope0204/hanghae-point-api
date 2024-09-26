@@ -155,6 +155,20 @@ class PointServiceTest {
 
     // ============================ 포인트 충전 테스트 ============================
     @Test
+    @DisplayName("최대 금액 이상의 금액을 충전하는 경우")
+    void chargeExceedMaxAmountTest() {
+        Long id = 1L;
+        long baseAmount = 50L;
+        // 해당 id에 기본값 포인트 설정
+        when(userPointTable.selectById(id)).thenReturn(new UserPoint(id, baseAmount, System.currentTimeMillis()));
+
+        //최대 금액 이상의 포인트를 충전하는 경우 에러 발생
+        assertThatThrownBy(() -> pointService.charge(id, 10000L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("최대 잔고 이상으로 충전할 수 없습니다.");
+    }
+
+    @Test
     @DisplayName("0원 이하의 금액을 충전하는 경우")
     void chargeInValidAmountTest() {
         Long id = 1L;

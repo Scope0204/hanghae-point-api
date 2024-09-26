@@ -23,6 +23,7 @@ public class PointService {
 
     private static final Logger log = LoggerFactory.getLogger(PointService.class);
 
+    private final static Long MAX_POINT = 10000L; // Max 포인트 지정
     private final UserPointTable userPointTable;
     private final PointHistoryTable pointHistoryTable;
     private final Map<Long, ReentrantLock> locks = new ConcurrentHashMap<>();
@@ -44,7 +45,9 @@ public class PointService {
             // 기존 포인트 양 조회
             Long baseAmount = userPointTable.selectById(id).point();
             long updateAmount = baseAmount + amount;
-
+            if(updateAmount > MAX_POINT){
+                throw new IllegalArgumentException("최대 잔고 이상으로 충전할 수 없습니다.");
+            }
             // 포인트 충전 내역 저장
             PointHistory insertPoint = pointHistoryTable.insert(id, amount, CHARGE, System.currentTimeMillis());
             log.info("포인트 충전 완료 : " + insertPoint);
